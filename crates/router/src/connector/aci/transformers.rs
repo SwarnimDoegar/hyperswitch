@@ -114,7 +114,6 @@ impl TryFrom<&types::PaymentsAuthorizeRouterData> for AciPaymentsRequest {
             api::PaymentMethod::PayLater(_) => PaymentDetails::Klarna,
             api::PaymentMethod::Wallet(_) => PaymentDetails::Wallet,
             api::PaymentMethod::Paypal => PaymentDetails::Paypal,
-            api::PaymentMethod::CardToken(_) => PaymentDetails::Paypal
         };
 
         let auth = AciAuthType::try_from(&item.connector_auth_type)?;

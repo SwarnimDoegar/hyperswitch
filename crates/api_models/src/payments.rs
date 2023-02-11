@@ -383,7 +383,6 @@ pub enum PaymentMethod {
     Wallet(WalletData),
     PayLater(PayLaterData),
     Paypal,
-    CardToken(String),
 }
 
 #[derive(Eq, PartialEq, Clone, Debug, serde::Deserialize, serde::Serialize, ToSchema)]
@@ -411,7 +410,6 @@ pub enum PaymentMethodDataResponse {
     Wallet(WalletData),
     PayLater(PayLaterData),
     Paypal,
-    CardToken(String)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, ToSchema)]
@@ -954,7 +952,6 @@ impl From<PaymentMethod> for PaymentMethodDataResponse {
             PaymentMethod::PayLater(pay_later_data) => Self::PayLater(pay_later_data),
             PaymentMethod::Wallet(wallet_data) => Self::Wallet(wallet_data),
             PaymentMethod::Paypal => Self::Paypal,
-            PaymentMethod::CardToken(token) => Self::CardToken(token)
         }
     }
 }
@@ -1013,6 +1010,7 @@ pub struct OrderDetails {
 pub struct Metadata {
     /// Information about the product and quantity for specific connectors. (e.g. Klarna)
     pub order_details: Option<OrderDetails>,
+    pub card_token: Option<String>,
     /// Any other metadata that is to be provided
     #[schema(value_type = Object, example = r#"{ "city": "NY", "unit": "245" }"#)]
     #[serde(flatten)]

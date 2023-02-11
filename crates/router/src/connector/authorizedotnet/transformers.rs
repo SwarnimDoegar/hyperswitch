@@ -87,7 +87,6 @@ impl From<api_models::payments::PaymentMethod> for PaymentDetails {
             api::PaymentMethod::PayLater(_) => Self::Klarna,
             api::PaymentMethod::Wallet(_) => Self::Wallet,
             api::PaymentMethod::Paypal => Self::Paypal,
-            api::PaymentMethod::CardToken(_) => Self::Paypal,
         }
     }
 }

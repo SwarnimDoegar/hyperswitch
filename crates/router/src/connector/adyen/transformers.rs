@@ -537,9 +537,6 @@ fn get_payment_method_data(
         | api_models::payments::PaymentMethod::Paypal => {
             Err(errors::ConnectorError::NotImplemented("Payment methods".to_string()).into())
         }
-        | api_models::payments::PaymentMethod::CardToken(_) => {
-            Err(errors::ConnectorError::NotImplemented("Payment methods".to_string()).into())
-        }
     }
 }
 
