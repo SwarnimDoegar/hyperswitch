@@ -130,10 +130,7 @@ impl ConnectorIntegration<api::Void, types::PaymentsCancelData, types::PaymentsR
         req: &types::PaymentsCancelRouterData,
         connectors: &settings::Connectors,
     ) -> CustomResult<String, errors::ConnectorError> {
-        let connector_payment_id = req
-                                            .request
-                                            .connector_transaction_id
-                                            .clone();
+        let connector_payment_id = req.request.connector_transaction_id.clone();
         Ok(format!(
             "{}v2/payments/{}/cancel",
             self.base_url(connectors),
@@ -157,9 +154,7 @@ impl ConnectorIntegration<api::Void, types::PaymentsCancelData, types::PaymentsR
             services::RequestBuilder::new()
                 .method(services::Method::Post)
                 .url(&types::PaymentsVoidType::get_url(self, req, connectors)?)
-                .headers(types::PaymentsVoidType::get_headers(
-                    self, req, connectors,
-                )?)
+                .headers(types::PaymentsVoidType::get_headers(self, req, connectors)?)
                 .build(),
         ))
     }
@@ -288,10 +283,7 @@ impl ConnectorIntegration<api::Capture, types::PaymentsCaptureData, types::Payme
         req: &types::PaymentsCaptureRouterData,
         connectors: &settings::Connectors,
     ) -> CustomResult<String, errors::ConnectorError> {
-        let connector_payment_id = req
-                                            .request
-                                            .connector_transaction_id
-                                            .clone();
+        let connector_payment_id = req.request.connector_transaction_id.clone();
         Ok(format!(
             "{}v2/payments/{}/complete",
             self.base_url(connectors),
