@@ -175,7 +175,8 @@ impl From<SquarePaymentStatus> for enums::AttemptStatus {
     fn from(item: SquarePaymentStatus) -> Self {
         match item {
             SquarePaymentStatus::CAPTURED => Self::Charged,
-            SquarePaymentStatus::VOIDED | SquarePaymentStatus::FAILED => Self::Failure,
+            SquarePaymentStatus::VOIDED => Self::Voided,
+            SquarePaymentStatus::FAILED => Self::Failure,
             SquarePaymentStatus::AUTHORIZED => Self::Authorized,
         }
     }
