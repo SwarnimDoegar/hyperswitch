@@ -2,13 +2,28 @@ use serde::{Deserialize, Serialize};
 use crate::{core::errors,types::{self,api, storage::enums}};
 
 //TODO: Fill the struct with respective fields
-#[derive(Default, Debug, Serialize, Eq, PartialEq)]
-pub struct SquarePaymentsRequest {}
+#[derive(Default, Debug, Serialize)]
+pub struct SquarePaymentsRequest {
+    pub source_id: String,
+    pub idempotency_key: String,
+    pub amount_money: Amount
+}
+
+#[derive(Default, Debug, Serialize)]
+pub struct Amount {
+    amount: i64,
+    currency: String
+}
 
 impl TryFrom<&types::PaymentsAuthorizeRouterData> for SquarePaymentsRequest  {
     type Error = error_stack::Report<errors::ConnectorError>;
     fn try_from(_item: &types::PaymentsAuthorizeRouterData) -> Result<Self,Self::Error> {
-        todo!()
+        let 
+        Ok(Self {
+            source_id: item.request.source_id,
+            idempotency_key: item.request.idempotency_key,
+
+        })
     }
 }
 
@@ -56,8 +71,77 @@ impl From<SquarePaymentStatus> for enums::AttemptStatus {
 //TODO: Fill the struct with respective fields
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SquarePaymentsResponse {
-    status: SquarePaymentStatus,
-    id: String,
+    pub payment: Option<Payment>,
+    pub errors : Option<SquareErrorResponse>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Payment{
+    pub id: String,
+    pub created_at: Option<i64>,
+    pub updated_at: Option<i64>,
+    pub amount_money: Amount,
+    pub app_fee_money: Option<Amount>,
+    pub delay_duration: Option<String>,
+    pub source_type: Option<String>,
+    pub card_details: Option<CardDetails>,
+    pub location_id: Option<String>,
+    pub order_id: Option<String>,
+    pub reference_id: Option<String>,
+    pub risk_evaluation: Option<RiskEvaluation>,
+    pub note: Option<String>,
+    pub customer_id: Option<String>,
+    pub total_money: Option<Amount>,
+    pub approved_money: Option<Amount>,
+    pub receipt_number: Option<String>,
+    pub receipt_url: Option<String>,
+    pub delay_action: Option<String>,
+    pub delayed_until: Option<i64>,
+    pub application_details: Option<ApplicationDetails>,
+    pub version_token: Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CardDetails{
+    pub status: Option<SquareStatus>,
+    pub card: Option<Card>,
+    pub entry_method: Option<String>,
+    pub cvv_status: Option<String>,
+    pub avs_status: Option<String>,
+    pub statement_description: Option<String>,
+    pub auth_result_code: Option<String>,
+    pub statement_description: Option<String>,
+    pub card_payment_timeline: Option<CardPaymentTimeline>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Card{
+    pub card_brand: Option<String>,
+    pub last_4: Option<String>,
+    pub exp_month: Option<i32>,
+    pub exp_year: Option<i32>,
+    pub fingerprint: Option<String>,
+    pub card_type: Option<String>,
+    pub prepaid_type: Option<String>,
+    pub bin: Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CardPaymentTimeline{
+    authorized_at: Option<i64>,
+    captured_at: Option<i64>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RiskEvaluation{
+    created_at: Option<i64>,
+    risk_level: Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ApplicationDetails{
+    square_product: Option<String>,
+    application_id: Option<String>
 }
 
 impl<F,T> TryFrom<types::ResponseRouterData<F, SquarePaymentsResponse, T, types::PaymentsResponseData>> for types::RouterData<F, T, types::PaymentsResponseData> {
