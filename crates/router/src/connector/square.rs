@@ -53,7 +53,16 @@ impl ConnectorCommon for Square {
         let auth: square::SquareAuthType = auth_type
             .try_into()
             .change_context(errors::ConnectorError::FailedToObtainAuthType)?;
-        Ok(vec![(headers::AUTHORIZATION.to_string(), auth.api_key)])
+        Ok(vec![
+            (
+                headers::AUTHORIZATION.to_string(),
+                format!("Bearer {}", auth.access_token),
+            ),
+            (
+                String::from("Square-Version"),
+                auth.api_version
+            )
+        ])
     }
 }
 

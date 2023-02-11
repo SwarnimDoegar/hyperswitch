@@ -15,13 +15,21 @@ impl TryFrom<&types::PaymentsAuthorizeRouterData> for SquarePaymentsRequest  {
 //TODO: Fill the struct with respective fields
 // Auth Struct
 pub struct SquareAuthType {
-    pub(super) api_key: String
+    pub access_token: String,
+    pub api_version: String,
 }
 
 impl TryFrom<&types::ConnectorAuthType> for SquareAuthType  {
     type Error = error_stack::Report<errors::ConnectorError>;
-    fn try_from(_auth_type: &types::ConnectorAuthType) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(auth_type: &types::ConnectorAuthType) -> Result<Self, Self::Error> {
+        if let types::ConnectorAuthType::BodyKey { api_key, key1 } = auth_type {
+            Ok(Self {
+                access_token: api_key.to_string(),
+                api_version: key1.to_string(),
+            })
+        } else {
+            Err(errors::ConnectorError::FailedToObtainAuthType)?
+        }
     }
 }
 // PaymentsResponse
@@ -122,12 +130,16 @@ impl TryFrom<types::RefundsResponseRouterData<api::Execute, RefundResponse>>
 
 impl TryFrom<types::RefundsResponseRouterData<api::RSync, RefundResponse>> for types::RefundsRouterData<api::RSync>
 {
-     type Error = error_stack::Report<errors::ParsingError>;
+    type Error = error_stack::Report<errors::ParsingError>;
     fn try_from(_item: types::RefundsResponseRouterData<api::RSync, RefundResponse>) -> Result<Self,Self::Error> {
          todo!()
-     }
+    }
  }
 
-//TODO: Fill the struct with respective fields
 #[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
-pub struct SquareErrorResponse {}
+pub struct SquareErrorResponse {
+    category : String,
+    code : String,
+    detail : Option<String>,
+    field : Option<String>,
+}
