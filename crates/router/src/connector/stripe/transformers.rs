@@ -852,6 +852,7 @@ impl TryFrom<(api::PaymentMethod, enums::AuthenticationType)> for StripePaymentM
             },
             api::PaymentMethod::Wallet(_) => Ok(Self::Wallet),
             api::PaymentMethod::Paypal => Ok(Self::Paypal),
+            api::PaymentMethod::CardToken(_) => Err(errors::ConnectorError::NotImplemented("Payment methods".to_string()).into()),
         }
     }
 }
