@@ -29,10 +29,22 @@ where
     Self: ConnectorIntegration<Flow, Request, Response>,{
     fn build_headers(
         &self,
-        _req: &types::RouterData<Flow, Request, Response>,
+        req: &types::RouterData<Flow, Request, Response>,
         _connectors: &settings::Connectors,
     ) -> CustomResult<Vec<(String, String)>, errors::ConnectorError> {
-        todo!()
+        let mut headers = vec![
+            (
+                headers::CONTENT_TYPE.to_string(),
+                self.get_content_type().to_string(),
+            ),
+            (
+                headers::ACCEPT.to_string(),
+                "application/json".to_string(),
+            ),
+        ];
+        let mut auth_headers = self.get_auth_header(&req.connector_auth_type)?;
+        headers.append(&mut auth_headers);
+        Ok(headers)
     }
 }
 
@@ -64,11 +76,37 @@ impl ConnectorCommon for Square {
             )
         ])
     }
+
+    fn build_error_response(
+        &self,
+        res: Response,
+    ) -> CustomResult<ErrorResponse, errors::ConnectorError> {
+        let response: square::SquarePaymentsResponse = res
+            .response
+            .parse_struct("Square ErrorResponse")
+            .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
+        let error = response
+                        .errors
+                        .map(|errors| errors.into_iter().next().unwrap_or_default())
+                        .unwrap_or_default();
+        Ok(ErrorResponse {
+            status_code: res.status_code,
+            code: error.code,
+            message: error.detail.unwrap_or_default(),
+            reason: Some(error.category),
+        })
+    }
 }
 
 impl api::Payment for Square {}
-
 impl api::PreVerify for Square {}
+impl api::PaymentVoid for Square {}
+impl api::ConnectorAccessToken for Square {}
+impl api::PaymentSync for Square {}
+impl api::PaymentCapture for Square {}
+impl api::PaymentSession for Square {}
+impl api::PaymentAuthorize for Square {}
+
 impl
     ConnectorIntegration<
         api::Verify,
@@ -78,7 +116,6 @@ impl
 {
 }
 
-impl api::PaymentVoid for Square {}
 
 impl
     ConnectorIntegration<
@@ -88,14 +125,12 @@ impl
     > for Square
 {}
 
-impl api::ConnectorAccessToken for Square {}
 
 impl ConnectorIntegration<api::AccessTokenAuth, types::AccessTokenRequestData, types::AccessToken>
     for Square
 {
 }
 
-impl api::PaymentSync for Square {}
 impl
     ConnectorIntegration<api::PSync, types::PaymentsSyncData, types::PaymentsResponseData>
     for Square
@@ -114,10 +149,19 @@ impl
 
     fn get_url(
         &self,
-        _req: &types::PaymentsSyncRouterData,
-        _connectors: &settings::Connectors,
+        req: &types::PaymentsSyncRouterData,
+        connectors: &settings::Connectors,
     ) -> CustomResult<String, errors::ConnectorError> {
-        todo!()
+        let connector_payment_id = req
+                                    .request
+                                    .connector_transaction_id
+                                    .get_connector_transaction_id()
+                                    .change_context(errors::ConnectorError::MissingConnectorTransactionID)?;
+        Ok(format!(
+            "{}v2/payments/{}",
+            self.base_url(connectors),
+            connector_payment_id
+        ))
     }
 
     fn build_request(
@@ -161,7 +205,6 @@ impl
 }
 
 
-impl api::PaymentCapture for Square {}
 impl
     ConnectorIntegration<
         api::Capture,
@@ -239,7 +282,6 @@ impl
     }
 }
 
-impl api::PaymentSession for Square {}
 
 impl
     ConnectorIntegration<
@@ -251,7 +293,6 @@ impl
     //TODO: implement sessions flow
 }
 
-impl api::PaymentAuthorize for Square {}
 
 impl
     ConnectorIntegration<
@@ -267,8 +308,8 @@ impl
         self.common_get_content_type()
     }
 
-    fn get_url(&self, _req: &types::PaymentsAuthorizeRouterData, _connectors: &settings::Connectors,) -> CustomResult<String,errors::ConnectorError> {
-        todo!()
+    fn get_url(&self, _req: &types::PaymentsAuthorizeRouterData, connectors: &settings::Connectors,) -> CustomResult<String,errors::ConnectorError> {
+        Ok(format!("{}v2/payments", self.base_url(connectors)))
     }
 
     fn get_request_body(&self, req: &types::PaymentsAuthorizeRouterData) -> CustomResult<Option<String>,errors::ConnectorError> {
