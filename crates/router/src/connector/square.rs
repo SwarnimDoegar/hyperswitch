@@ -445,9 +445,9 @@ impl ConnectorIntegration<api::Execute, types::RefundsData, types::RefundsRespon
     fn get_url(
         &self,
         _req: &types::RefundsRouterData<api::Execute>,
-        _connectors: &settings::Connectors,
+        connectors: &settings::Connectors,
     ) -> CustomResult<String, errors::ConnectorError> {
-        todo!()
+        Ok(format!("{}v2/refunds", self.base_url(connectors)))
     }
 
     fn get_request_body(
@@ -481,10 +481,10 @@ impl ConnectorIntegration<api::Execute, types::RefundsData, types::RefundsRespon
         res: Response,
     ) -> CustomResult<types::RefundsRouterData<api::Execute>, errors::ConnectorError> {
         logger::debug!(target: "router::connector::square", response=?res);
-        let response: square::RefundResponse =
-            res.response
-                .parse_struct("square RefundResponse")
-                .change_context(errors::ConnectorError::RequestEncodingFailed)?;
+        let response: square::SquareRefundResponse = res
+            .response
+            .parse_struct("square SquareRefundResponse")
+            .change_context(errors::ConnectorError::RequestEncodingFailed)?;
         types::ResponseRouterData {
             response,
             data: data.clone(),
@@ -498,7 +498,20 @@ impl ConnectorIntegration<api::Execute, types::RefundsData, types::RefundsRespon
         &self,
         res: Response,
     ) -> CustomResult<ErrorResponse, errors::ConnectorError> {
-        self.build_error_response(res)
+        let response: square::SquareRefundResponse = res
+            .response
+            .parse_struct("Square ErrorResponse")
+            .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
+        let error = response
+            .errors
+            .map(|errors| errors.into_iter().next().unwrap_or_default())
+            .unwrap_or_default();
+        Ok(ErrorResponse {
+            status_code: res.status_code,
+            code: error.code,
+            message: error.detail.unwrap_or_default(),
+            reason: Some(error.category),
+        })
     }
 }
 
@@ -517,10 +530,15 @@ impl ConnectorIntegration<api::RSync, types::RefundsData, types::RefundsResponse
 
     fn get_url(
         &self,
-        _req: &types::RefundSyncRouterData,
-        _connectors: &settings::Connectors,
+        req: &types::RefundSyncRouterData,
+        connectors: &settings::Connectors,
     ) -> CustomResult<String, errors::ConnectorError> {
-        todo!()
+        let refund_id = req.request.connector_refund_id.clone().unwrap_or_default();
+        Ok(format!(
+            "{}v2/refunds/{}",
+            self.base_url(connectors),
+            refund_id
+        ))
     }
 
     fn build_request(
@@ -544,10 +562,10 @@ impl ConnectorIntegration<api::RSync, types::RefundsData, types::RefundsResponse
         res: Response,
     ) -> CustomResult<types::RefundSyncRouterData, errors::ConnectorError> {
         logger::debug!(target: "router::connector::square", response=?res);
-        let response: square::RefundResponse =
-            res.response
-                .parse_struct("square RefundResponse")
-                .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
+        let response: square::SquareRefundResponse = res
+            .response
+            .parse_struct("square SquareRefundResponse")
+            .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
         types::ResponseRouterData {
             response,
             data: data.clone(),
@@ -561,7 +579,20 @@ impl ConnectorIntegration<api::RSync, types::RefundsData, types::RefundsResponse
         &self,
         res: Response,
     ) -> CustomResult<ErrorResponse, errors::ConnectorError> {
-        self.build_error_response(res)
+        let response: square::SquareRefundResponse = res
+            .response
+            .parse_struct("Square ErrorResponse")
+            .change_context(errors::ConnectorError::ResponseDeserializationFailed)?;
+        let error = response
+            .errors
+            .map(|errors| errors.into_iter().next().unwrap_or_default())
+            .unwrap_or_default();
+        Ok(ErrorResponse {
+            status_code: res.status_code,
+            code: error.code,
+            message: error.detail.unwrap_or_default(),
+            reason: Some(error.category),
+        })
     }
 }
 
