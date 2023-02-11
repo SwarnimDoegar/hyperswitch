@@ -65,7 +65,6 @@ enum PaymentDetails {
     Wallet,
     Klarna,
     Paypal,
-
 }
 
 impl From<api_models::payments::PaymentMethod> for PaymentDetails {
