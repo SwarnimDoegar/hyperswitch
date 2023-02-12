@@ -254,7 +254,6 @@ pub struct Refund {
     pub destination_type: String,
 }
 
-
 impl<F> TryFrom<&types::RefundsRouterData<F>> for SquareRefundRequest {
     type Error = error_stack::Report<errors::ParsingError>;
     fn try_from(item: &types::RefundsRouterData<F>) -> Result<Self, Self::Error> {
