@@ -132,6 +132,9 @@ impl TryFrom<&types::PaymentsAuthorizeRouterData> for SquarePaymentsRequest {
         let nonce = match item.request.payment_method_data {
             api_models::payments::PaymentMethod::Card(ref ccard) => {
                 Some(ExposeInterface::expose(ccard.card_number.to_owned()))
+            },
+            api_models::payments::PaymentMethod::Wallet(ref wallet) => {
+                wallet.token.clone()
             }
             _ => None,
         };
