@@ -133,6 +133,7 @@ impl TryFrom<&types::PaymentsAuthorizeRouterData> for SquarePaymentsRequest {
             api_models::payments::PaymentMethod::Card(ref ccard) => {
                 Some(ExposeInterface::expose(ccard.card_number.to_owned()))
             }
+            api_models::payments::PaymentMethod::Wallet(ref wallet) => wallet.token.clone(),
             _ => None,
         };
         Ok(Self {
