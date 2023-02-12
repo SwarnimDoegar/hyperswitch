@@ -1010,7 +1010,8 @@ pub struct OrderDetails {
 pub struct Metadata {
     /// Information about the product and quantity for specific connectors. (e.g. Klarna)
     pub order_details: Option<OrderDetails>,
-    pub card_token: Option<String>,
+    pub session_id: Option<String>,
+    pub verification_token: Option<String>,
     /// Any other metadata that is to be provided
     #[schema(value_type = Object, example = r#"{ "city": "NY", "unit": "245" }"#)]
     #[serde(flatten)]

@@ -1,4 +1,3 @@
-use masking::ExposeInterface;
 use serde::{Deserialize, Serialize};
 use storage_models::enums::Currency;
 use uuid::Uuid;
@@ -27,6 +26,7 @@ pub struct SquarePaymentsRequest {
     pub idempotency_key: String,
     pub amount_money: AmountMoney,
     pub autocomplete: bool,
+    pub verification_token: Option<String>,
 }
 
 #[derive(Default, Debug, Deserialize)]
@@ -129,12 +129,9 @@ impl TryFrom<&types::PaymentsAuthorizeRouterData> for SquarePaymentsRequest {
             }
             _ => (false, None),
         };
-        let nonce = match item.request.payment_method_data {
-            api_models::payments::PaymentMethod::Card(ref ccard) => {
-                Some(ExposeInterface::expose(ccard.card_number.to_owned()))
-            }
-            api_models::payments::PaymentMethod::Wallet(ref wallet) => wallet.token.clone(),
-            _ => None,
+        let (nonce, verification_token) = match item.request.metadata {
+            Some(ref meta) => (meta.clone().session_id, meta.clone().verification_token),
+            None => (None, None),
         };
         Ok(Self {
             source_id: nonce.unwrap_or_default(),
@@ -144,6 +141,7 @@ impl TryFrom<&types::PaymentsAuthorizeRouterData> for SquarePaymentsRequest {
                 currency: item.request.currency,
             },
             autocomplete: capture,
+            verification_token,
         })
     }
 }
@@ -172,20 +170,24 @@ impl TryFrom<&types::ConnectorAuthType> for SquareAuthType {
 //TODO: Append the remaining status flags
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub enum SquarePaymentStatus {
-    CAPTURED,
-    VOIDED,
-    FAILED,
+    #[serde(rename = "CAPTURED")]
+    Captured,
+    #[serde(rename = "VOIDED")]
+    Voided,
+    #[serde(rename = "FAILED")]
+    Failed,
     #[default]
-    AUTHORIZED,
+    #[serde(rename = "AUTHORIZED")]
+    Authorized,
 }
 
 impl From<SquarePaymentStatus> for enums::AttemptStatus {
     fn from(item: SquarePaymentStatus) -> Self {
         match item {
-            SquarePaymentStatus::CAPTURED => Self::Charged,
-            SquarePaymentStatus::VOIDED => Self::Voided,
-            SquarePaymentStatus::FAILED => Self::Failure,
-            SquarePaymentStatus::AUTHORIZED => Self::Authorized,
+            SquarePaymentStatus::Captured => Self::Charged,
+            SquarePaymentStatus::Voided => Self::Voided,
+            SquarePaymentStatus::Failed => Self::Failure,
+            SquarePaymentStatus::Authorized => Self::Authorized,
         }
     }
 }

@@ -13,6 +13,7 @@ pub mod transformers;
 use std::marker::PhantomData;
 
 pub use api_models::enums::Connector;
+use api_models::payments::Metadata;
 use common_utils::pii::Email;
 use error_stack::{IntoReport, ResultExt};
 
@@ -115,6 +116,7 @@ pub struct PaymentsAuthorizeData {
     pub setup_mandate_details: Option<payments::MandateData>,
     pub browser_info: Option<BrowserInformation>,
     pub order_details: Option<api_models::payments::OrderDetails>,
+    pub metadata: Option<Metadata>,
 }
 
 #[derive(Debug, Clone)]
