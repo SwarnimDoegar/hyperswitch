@@ -519,6 +519,7 @@ pub enum Connector {
     Cybersource,
     #[default]
     Dummy,
+    Square,
     Fiserv,
     Globalpay,
     Klarna,
@@ -566,6 +567,7 @@ pub enum RoutableConnectors {
     Stripe,
     Worldline,
     Worldpay,
+    Square,
 }
 
 /// Wallets which support obtaining session object

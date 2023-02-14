@@ -413,7 +413,7 @@ impl<F: Clone> TryFrom<PaymentData<F>> for types::PaymentsAuthorizeData {
             .transpose()
             .unwrap_or_default();
 
-        let order_details = parsed_metadata.and_then(|data| data.order_details);
+        let order_details = parsed_metadata.clone().and_then(|data| data.order_details);
 
         Ok(Self {
             payment_method_data: payment_data
@@ -431,6 +431,7 @@ impl<F: Clone> TryFrom<PaymentData<F>> for types::PaymentsAuthorizeData {
             browser_info,
             email: payment_data.email,
             order_details,
+            metadata: parsed_metadata,
         })
     }
 }
