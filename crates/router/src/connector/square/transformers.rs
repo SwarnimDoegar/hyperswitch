@@ -341,3 +341,5 @@ pub struct SquareErrorResponse {
     pub detail: Option<String>,
     pub field: Option<String>,
 }
+
+//TODO: Implement Card mandates once Square starts supporting it. As of now, card mandates are not suported.
